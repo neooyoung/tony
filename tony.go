@@ -1,6 +1,7 @@
 package tony
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gookit/validate"
-	jsoniter "github.com/json-iterator/go"
 )
 
 type Engine struct {
@@ -24,10 +24,20 @@ func New(c *gin.Context) *Engine {
 	return &Engine{c, data}
 }
 
+func GetDatas(key string, req *http.Request) interface{} {
+	data, err := validate.FromRequest(req)
+	if err != nil {
+		data = nil
+	}
+	// res, _ := data.Get(key)
+	return data
+}
+
 func GetRequestData(req *http.Request) (map[string]interface{}, error) {
 	contentType := getContentType(req)
 	res := make(map[string]interface{})
 	var err error
+
 	switch contentType {
 	case "":
 		res = parseQuery(req)
@@ -59,7 +69,7 @@ func parseJSON(req *http.Request) (map[string]interface{}, error) {
 		return nil, err
 	}
 	var res map[string]interface{}
-	json := jsoniter.ConfigCompatibleWithStandardLibrary
+	// json := jsoniter.ConfigCompatibleWithStandardLibrary
 	json.Unmarshal(data, &res)
 	return res, nil
 }
@@ -69,19 +79,26 @@ func parseForm(req *http.Request) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseURLValues(&req.PostForm), nil
+
+	return parseURLValues(&req.MultipartForm.Value), nil
 }
 
 func parseWWWForm(req *http.Request) (map[string]interface{}, error) {
-	data, err := getBodyData(req)
+	err := req.ParseForm()
 	if err != nil {
 		return nil, err
 	}
-	urlValues, err := url.ParseQuery(string(data))
-	if err != nil {
-		return nil, err
-	}
-	return parseURLValues(&urlValues), nil
+
+	// data, err := getBodyData(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// urlValues, err := url.ParseQuery(string(data))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return parseURLValues(&req.PostForm), nil
 }
 
 func getBodyData(req *http.Request) ([]byte, error) {
@@ -95,7 +112,7 @@ func getBodyData(req *http.Request) ([]byte, error) {
 
 func parseURLValues(urlValues *url.Values) map[string]interface{} {
 	res := make(map[string]interface{})
-	for k, v := range *urlValues {
+	for k, v := range urlValues {
 		if len(v) == 1 {
 			res[k] = v[0]
 		} else {
