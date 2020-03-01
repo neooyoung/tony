@@ -1,7 +1,6 @@
 package tony
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -25,66 +24,76 @@ func New(c *gin.Context) *Engine {
 	return &Engine{c, data}
 }
 
-func GetContentType(req *http.Request) interface{} {
-	contentTypeHeader := req.Header.Get("Content-Type")
-	contentTypeSlice := strings.Split(contentTypeHeader, ";")
-	fmt.Println(contentTypeSlice)
-	var res interface{}
-	switch contentTypeSlice[0] {
+func GetRequestData(req *http.Request) (map[string]interface{}, error) {
+	contentType := getContentType(req)
+	res := make(map[string]interface{})
+	var err error
+	switch contentType {
 	case "":
 		res = parseQuery(req)
 	case "application/json":
-		res = parseJSON(req)
+		res, err = parseJSON(req)
 	case "multipart/form-data":
-		res = parseForm(req)
+		res, err = parseForm(req)
 	case "application/x-www-form-urlencoded":
-		res = parseWWWForm(req)
-	default:
-		res = nil
+		res, err = parseWWWForm(req)
 	}
-	return res
+
+	return res, err
 }
 
-func parseQuery(req *http.Request) interface{} {
+func getContentType(req *http.Request) string {
+	contentTypeHeader := req.Header.Get("Content-Type")
+	contentTypeSlice := strings.Split(contentTypeHeader, ";")
+	return contentTypeSlice[0]
+}
+
+func parseQuery(req *http.Request) map[string]interface{} {
 	query := req.URL.Query()
-	return parseUrlValues(&query)
+	return parseURLValues(&query)
 }
 
-func parseJSON(req *http.Request) interface{} {
-	data := getBodyData(req)
+func parseJSON(req *http.Request) (map[string]interface{}, error) {
+	data, err := getBodyData(req)
+	if err != nil {
+		return nil, err
+	}
 	var res map[string]interface{}
 	json := jsoniter.ConfigCompatibleWithStandardLibrary
 	json.Unmarshal(data, &res)
-	return res
+	return res, nil
 }
 
-func parseForm(req *http.Request) interface{} {
+func parseForm(req *http.Request) (map[string]interface{}, error) {
 	err := req.ParseMultipartForm(1024)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return parseUrlValues(&req.PostForm)
+	return parseURLValues(&req.PostForm), nil
 }
 
-func parseWWWForm(req *http.Request) interface{} {
-	data := getBodyData(req)
+func parseWWWForm(req *http.Request) (map[string]interface{}, error) {
+	data, err := getBodyData(req)
+	if err != nil {
+		return nil, err
+	}
 	urlValues, err := url.ParseQuery(string(data))
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return parseUrlValues(&urlValues)
+	return parseURLValues(&urlValues), nil
 }
 
-func getBodyData(req *http.Request) []byte {
+func getBodyData(req *http.Request) ([]byte, error) {
 	body := req.Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return data
+	return data, nil
 }
 
-func parseUrlValues(urlValues *url.Values) map[string]interface{} {
+func parseURLValues(urlValues *url.Values) map[string]interface{} {
 	res := make(map[string]interface{})
 	for k, v := range *urlValues {
 		if len(v) == 1 {
