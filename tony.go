@@ -75,12 +75,13 @@ func parseJSON(req *http.Request) (map[string]interface{}, error) {
 }
 
 func parseForm(req *http.Request) (map[string]interface{}, error) {
-	err := req.ParseMultipartForm(1024)
-	if err != nil {
-		return nil, err
-	}
+	return nil, nil
+	// err := req.ParseMultipartForm(1024)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return parseURLValues(&req.MultipartForm.Value), nil
+	// return parseURLValues(&req.MultipartForm.Value), nil
 }
 
 func parseWWWForm(req *http.Request) (map[string]interface{}, error) {
@@ -112,7 +113,7 @@ func getBodyData(req *http.Request) ([]byte, error) {
 
 func parseURLValues(urlValues *url.Values) map[string]interface{} {
 	res := make(map[string]interface{})
-	for k, v := range urlValues {
+	for k, v := range *urlValues {
 		if len(v) == 1 {
 			res[k] = v[0]
 		} else {

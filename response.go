@@ -8,11 +8,14 @@ type Response struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
-func (e *Engine) ResSuccess(data interface{}) {
+func (e *Engine) ResSuccess(data ...interface{}) {
+	if len(data) == 0 {
+		data[0] = ""
+	}
 	e.context.JSON(200, Response{
 		Code: 0,
 		Msg:  "success",
-		Data: data,
+		Data: data[0],
 	})
 }
 
