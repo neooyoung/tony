@@ -75,11 +75,25 @@ func parseJSON(req *http.Request) (map[string]interface{}, error) {
 }
 
 func parseForm(req *http.Request) (map[string]interface{}, error) {
-	return nil, nil
-	// err := req.ParseMultipartForm(1024)
-	// if err != nil {
-	// 	return nil, err
+	err := req.ParseMultipartForm(1024)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	for k, v := range req.MultipartForm.Value {
+		res[k] = v
+	}
+
+	return res, nil
+	// res := url.Values{}
+	// for k, v := range req.MultipartForm.Value {
+	// 	for _, val := range v {
+	// 		res.Add(k, val)
+	// 	}
 	// }
+
+	// return parseURLValues(&res), nil
 
 	// return parseURLValues(&req.MultipartForm.Value), nil
 }
