@@ -1,6 +1,10 @@
 package tony
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Response struct {
 	Code int         `json:"code"`
@@ -8,18 +12,19 @@ type Response struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
-func (e *Engine) ResSuccess(data ...interface{}) {
+func ResSuccess(c *gin.Context, data ...interface{}) {
 	if len(data) == 0 {
 		data[0] = ""
 	}
-	e.context.JSON(200, Response{
+
+	c.JSON(200, Response{
 		Code: 0,
 		Msg:  "success",
 		Data: data[0],
 	})
 }
 
-func (e *Engine) ResError(code int, err interface{}) {
+func ResError(c *gin.Context, code int, err interface{}) {
 	msg := ""
 	if e, ok := err.(error); ok {
 		msg = e.Error()
@@ -27,7 +32,7 @@ func (e *Engine) ResError(code int, err interface{}) {
 		msg = fmt.Sprintf("%v", err)
 	}
 
-	e.context.AbortWithStatusJSON(200, Response{
+	c.AbortWithStatusJSON(200, Response{
 		Code: code,
 		Msg:  msg,
 	})

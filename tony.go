@@ -7,29 +7,27 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gookit/validate"
 )
 
-type Engine struct {
-	context *gin.Context
-	data    validate.DataFace
-}
+// type Engine struct {
+// 	context *gin.Context
+// 	data    validate.DataFace
+// }
 
-func New(c *gin.Context) *Engine {
-	data, err := validate.FromRequest(c.Request)
-	if err != nil {
-		data = nil
-	}
-	return &Engine{c, data}
-}
+// func New(c *gin.Context) *Engine {
+// 	data, err := validate.FromRequest(c.Request)
+// 	if err != nil {
+// 		data = nil
+// 	}
+// 	return &Engine{c, data}
+// }
 
 func GetDatas(key string, req *http.Request) interface{} {
 	data, err := validate.FromRequest(req)
 	if err != nil {
 		data = nil
 	}
-	// res, _ := data.Get(key)
 	return data
 }
 
@@ -37,7 +35,6 @@ func GetRequestData(req *http.Request) (map[string]interface{}, error) {
 	contentType := getContentType(req)
 	res := make(map[string]interface{})
 	var err error
-
 	switch contentType {
 	case "":
 		res = parseQuery(req)
@@ -48,7 +45,6 @@ func GetRequestData(req *http.Request) (map[string]interface{}, error) {
 	case "application/x-www-form-urlencoded":
 		res, err = parseWWWForm(req)
 	}
-
 	return res, err
 }
 
@@ -84,18 +80,7 @@ func parseForm(req *http.Request) (map[string]interface{}, error) {
 	for k, v := range req.MultipartForm.Value {
 		res[k] = v
 	}
-
 	return res, nil
-	// res := url.Values{}
-	// for k, v := range req.MultipartForm.Value {
-	// 	for _, val := range v {
-	// 		res.Add(k, val)
-	// 	}
-	// }
-
-	// return parseURLValues(&res), nil
-
-	// return parseURLValues(&req.MultipartForm.Value), nil
 }
 
 func parseWWWForm(req *http.Request) (map[string]interface{}, error) {
@@ -103,16 +88,6 @@ func parseWWWForm(req *http.Request) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// data, err := getBodyData(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// urlValues, err := url.ParseQuery(string(data))
-	// if err != nil {
-	// 	return nil, err
-	// }
 	return parseURLValues(&req.PostForm), nil
 }
 
