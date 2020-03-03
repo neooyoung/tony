@@ -23,7 +23,7 @@ import (
 // 	return &Engine{c, data}
 // }
 
-func GetDatas(key string, req *http.Request) interface{} {
+func getDatas(key string, req *http.Request) interface{} {
 	data, err := validate.FromRequest(req)
 	if err != nil {
 		data = nil
@@ -31,7 +31,7 @@ func GetDatas(key string, req *http.Request) interface{} {
 	return data
 }
 
-func GetRequestData(req *http.Request) (map[string]interface{}, error) {
+func getRequestData(req *http.Request) (map[string]interface{}, error) {
 	contentType := getContentType(req)
 	res := make(map[string]interface{})
 	var err error

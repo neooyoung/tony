@@ -1,6 +1,6 @@
 package tony
 
-func Substring(str string, indexs ...int) string {
+func SubString(str string, indexs ...int) string {
 	if len(indexs) == 0 {
 		return str
 	}
